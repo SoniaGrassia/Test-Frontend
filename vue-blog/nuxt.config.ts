@@ -2,6 +2,13 @@
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 
 export default defineNuxtConfig({
+  nitro: {
+    esbuild: {
+      options: {
+        target: "es2022",
+      },
+    },
+  },
   devtools: { enabled: true },
   build: {
     transpile: ["vuetify"],
@@ -16,6 +23,9 @@ export default defineNuxtConfig({
     //...
   ],
   vite: {
+    build: {
+      target: ["es2022", "edge89", "firefox89", "chrome89", "safari15"],
+    },
     vue: {
       template: {
         transformAssetUrls,
