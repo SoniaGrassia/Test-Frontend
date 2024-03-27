@@ -1,24 +1,34 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { users, error } from "../utils/fetch";
+import { useUsers } from "../utils/useFetch";
+import type { SubmitEventPromise } from "vuetify";
 
-const email = ref("");
+const users = ref<User[]>(useUsers.items.value);
+const error = ref<string | null>(useUsers.error.value);
+
+const mail = ref("");
 const router = useRouter();
 const rules = ref([
   (value: string) => {
-    if (value) return true;
+    if (!value) return "Campo obbligatorio";
+    if (/^[a-z.-]+@[a-z.-]+\.[a-z]+$/i.test(value)) return true;
     return "Inserisci un indirizzo email valido";
   },
 ]);
 
-async function login() {
-  if (users.value) {
-    const foundUser = users.value.find((user) => user.email === email.value);
-    if (foundUser) {
-      router.push("/dashboard");
-    } else {
-      error.value = "L'email inserita non è valida";
+async function login(event: SubmitEventPromise) {
+  error.value = null;
+  const result = await event;
+  if (result.valid) {
+    if (users.value?.length > 0) {
+      const foundUser = users.value.find(({ email }) => email === mail.value);
+      if (foundUser) {
+        localStorage.setItem("userLog", JSON.stringify(foundUser));
+        router.push("/dashboard");
+      } else {
+        error.value = "Utente non registrato";
+      }
     }
   }
 }
@@ -29,14 +39,16 @@ async function login() {
     <h2>Login</h2>
     <v-form @submit.prevent="login">
       <v-text-field
-        v-model="email"
+        v-model="mail"
         :rules="rules"
         label="E-mail"
         required
         validate-on="submit"
       ></v-text-field>
       <v-btn class="mt-2" type="submit" block>Login</v-btn>
-      <div v-if="error" class="error-message">{{ error }}</div>
+      <div v-if="error" class="error-message">
+        {{ error }}
+      </div>
     </v-form>
   </v-sheet>
 </template>

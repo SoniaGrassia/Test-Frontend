@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { users } from "../utils/fetch.ts";
+import { useUsers } from "../utils/useFetch";
+import store from "~/store";
 
 interface Post {
   body: string;
@@ -8,22 +9,22 @@ interface Post {
   userId: number;
 }
 
-interface UserPostCount {
+export interface UserPostCount {
   userId: number;
   postCount: number;
 }
 
+const users = ref<User[]>(useUsers.items.value);
 const post = ref<Post[] | null>(null);
-const postsUser = ref<UserPostCount[] | null>(null);
 
-async function useFetchId(url: string) {
-  fetch(url)
-    .then((res) => res.json())
-    .then((data: Post[]) => {
-      post.value = data;
+onMounted(() => {
+  async function useFetchId(url: string) {
+    fetch(url)
+      .then((res) => res.json())
+      .then((data: Post[]) => {
+        post.value = data;
 
-      const userPostCounts: UserPostCount[] = post.value.reduce(
-        (acc: UserPostCount[], obj: Post) => {
+        store.posts = post.value.reduce((acc: UserPostCount[], obj: Post) => {
           const foundUser = acc.find((user) => user.userId === obj.userId);
           if (foundUser) {
             foundUser.postCount++;
@@ -31,15 +32,12 @@ async function useFetchId(url: string) {
             acc.push({ userId: obj.userId, postCount: 1 });
           }
           return acc;
-        },
-        []
-      );
+        }, []);
+      });
+  }
 
-      postsUser.value = userPostCounts;
-    });
-}
-
-useFetchId("https://jsonplaceholder.typicode.com/posts");
+  useFetchId("https://jsonplaceholder.typicode.com/posts");
+});
 </script>
 
 <template>
@@ -56,9 +54,9 @@ useFetchId("https://jsonplaceholder.typicode.com/posts");
       >
         <h1>Classifica</h1>
         <v-card class="mx-auto" max-width="300">
-          <v-list-item v-for="(item, index) in postsUser"
+          <v-list-item v-for="(item, index) in store.posts"
             >{{ index + 1 }}_
-            {{ users.find((user) => user.id === item.userId)?.name }} -
+            {{ users?.find((user) => user.id === item.userId)?.name }} -
             {{ item.postCount }}
           </v-list-item>
         </v-card>

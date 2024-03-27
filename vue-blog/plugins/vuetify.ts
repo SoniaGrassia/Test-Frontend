@@ -1,4 +1,4 @@
-// import this after install `@mdi/font` package
+import { VSparkline } from "vuetify/labs/VSparkline";
 import { md3 } from "vuetify/blueprints";
 import "@mdi/font/css/materialdesignicons.css";
 
@@ -7,7 +7,9 @@ import { createVuetify } from "vuetify";
 
 export default defineNuxtPlugin((app) => {
   const vuetify = createVuetify({
-    // ... your configuration
+    components: {
+      VSparkline,
+    },
     ssr: true,
     blueprint: md3,
   });
