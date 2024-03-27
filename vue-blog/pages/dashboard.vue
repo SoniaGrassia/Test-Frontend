@@ -3,18 +3,19 @@ import { ref } from "vue";
 import type { UserPostCount } from "~/layouts/default.vue";
 import store from "~/store";
 
-// interface User {
-//   id: number;
-//   name: string;
-//   username: string;
-//   email: string;
-//   phone: string;
-//   website: string;
-// }
+interface User {
+  id: number;
+  name: string;
+  username: string;
+  email: string;
+  phone: string;
+  website: string;
+}
 
 interface Posts {
   postCount: number;
   userId: number;
+  createdAt?: string[];
 }
 
 interface PersonalData {
@@ -39,9 +40,24 @@ const userData = ref<PersonalData>({
 
 const userPost = ref<Posts>();
 
+const selectValues = [
+  { name: "Ultimo mese", value: 30 },
+  { name: "Semestre", value: 6 },
+  { name: "Anno", value: 12 },
+];
+
+const arrayValueOfSelect = ref<number[]>();
+
+const onSelectedFilterValue = (item: { name: string; value: number }) => {
+  arrayValueOfSelect.value = Array.from(
+    { length: item.value },
+    () => Math.floor(Math.random() * 100) + 1
+  );
+};
+
 const dataChart = {
-  fill: false,
-  selectedGradient: ["#616161"],
+  fill: true,
+  selectedGradient: ["#B0ADE0", "#ffffff"],
   padding: 8,
   smooth: true,
   value: [0, 2, 5, 9, 5, 10, 3, 5, 0, 0, 1, 8, 2, 9, 0],
@@ -60,7 +76,7 @@ watchEffect(() => {
   store.posts.sort(
     ({ postCount: countA }, { postCount: countB }) => countB - countA
   );
-  console.log("dashboard", store.posts);
+
   const allUser: UserPostCount[] = store.posts;
   const userPosition = allUser.findIndex((user: UserPostCount) => {
     return user.userId === userLog.value?.id;
@@ -69,6 +85,15 @@ watchEffect(() => {
   userPost.value = store.posts?.find((id) => id.userId === userLog.value?.id);
   if (userPost.value) {
     userData.value.totalPosts = userPost.value.postCount;
+  }
+  if (userData.value.position > 1) {
+    const previousUser = userData.value.position - 1;
+    userData.value.distanceBefore =
+      store.posts[previousUser - 1].postCount - userData.value.totalPosts;
+  } else if (userData.value.position === 1) {
+    const followingUser = userData.value.position + 1;
+    userData.value.distanceAfter =
+      userData.value.totalPosts - store.posts[followingUser + 1].postCount;
   }
 });
 
@@ -92,10 +117,8 @@ const submitPost = () => {
     .then((json) => {
       console.log("Nuovo post aggiunto:", json);
       userData.value.postsToday++;
-      // console.log(userPost.value?.postCount);
       if (userPost.value) {
         userData.value.totalPosts = userPost.value.postCount++;
-        // console.log(userPost.value.postCount);
       }
 
       dialog.value = false;
@@ -126,7 +149,7 @@ const resetForm = () => {
       >
     </div>
 
-    <v-card class="mt-3 mb-3 ml-2 mr-2" color="grey-lighten-2">
+    <v-card class="mt-3 mb-3 ml-2 mr-2" color="primary">
       <v-card-title>Riepilogo Statistiche Personali</v-card-title>
       <v-card-text>
         <v-row>
@@ -146,8 +169,10 @@ const resetForm = () => {
     <v-select
       clearable
       label="Visualizza dati per:"
-      :items="['Ultimo mese', 'Semestre', 'Anno']"
+      item-title="name"
+      :items="selectValues"
       variant="underlined"
+      @update:model-value="onSelectedFilterValue"
     ></v-select>
 
     <v-container fluid>
@@ -200,6 +225,16 @@ const resetForm = () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-banner
+      v-if="userData.position === 1"
+      class="my-4"
+      color="deep-purple-accent-4"
+      icon="mdi-account-arrow-up"
+      lines="one"
+    >
+      <v-banner-text> Sei primo nella classifica generale! </v-banner-text>
+    </v-banner>
   </v-container>
 </template>
 

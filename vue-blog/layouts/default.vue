@@ -42,25 +42,36 @@ onMounted(() => {
 
 <template>
   <v-layout ref="app" class="rounded rounded-md">
-    <v-app-bar color="grey-lighten-2" name="app-bar"></v-app-bar>
+    <v-app-bar color="teal-darken-4">
+      <template v-slot:image>
+        <v-img gradient="to top right, #7D7ABC, #B0ADE0"></v-img>
+      </template>
+
+      <v-app-bar-title>BlogBattle<v-icon>mdi-forum</v-icon></v-app-bar-title>
+    </v-app-bar>
     <v-main>
       <slot />
 
       <v-navigation-drawer
-        color="grey-darken-2"
+        class="pt-3 pb-3 pl-2 pr-2"
+        color="primary"
         location="end"
         name="drawer"
         permanent
       >
         <h1>Classifica</h1>
-        <v-card class="mx-auto" max-width="300">
-          <v-list-item v-for="(item, index) in store.posts"
-            >{{ index + 1 }}_
-            {{ users?.find((user) => user.id === item.userId)?.name }} -
-            {{ item.postCount }}
-          </v-list-item>
-        </v-card>
+        <v-expand-transition>
+          <v-card variant="outlined">
+            <v-list-item v-for="(item, index) in store.posts"
+              >{{ index + 1 }}.
+              {{ users?.find((user) => user.id === item.userId)?.name }} -
+              {{ item.postCount }}
+            </v-list-item>
+          </v-card>
+        </v-expand-transition>
       </v-navigation-drawer>
     </v-main>
   </v-layout>
 </template>
+
+<style lang="scss"></style>
